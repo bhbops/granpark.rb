@@ -7,13 +7,13 @@ if $datafile == nil then # 無指定時のデータファイル名
 end
 
 # グローバル変数
-$stack = [] # 探索結果をためる
+$stack = [] # 探索結果を一時的にためる
 
 # 読み込んだデータを一問づつ解析
-def kaiseki(row, col, data)
+def analysis_data(row, col, data)
 	counter = 2
 	offset = 0
-	while (offset = find_ichi(data)) != -1 do
+	while (offset = search_origin(data)) != -1 do
 		if trace(offset, row, col, data) == 0 then
 			break
 		end
@@ -27,7 +27,7 @@ def kaiseki(row, col, data)
 end
 
 # データ中の左上の1を探す
-def find_ichi(data)
+def search_origin(data)
 	found = 0
 	offset = 0
 	data.each { |item|
@@ -40,19 +40,19 @@ def find_ichi(data)
 	return (found == 1) ? offset : -1
 end
 
-# 左上の１を起点に，連接した１を探索する
+# 連接した１を探索する
 def trace(offset, row, col, data)
 	result = add_stack(offset) ? 1 : 0
 
-	result += r(offset, row, col, data)
-	result += d(offset, row, col, data)
-	result += l(offset, row, col, data)
-	result += u(offset, row, col, data)
+	result += move_right(offset, row, col, data)
+	result += move_down(offset, row, col, data)
+	result += move_left(offset, row, col, data)
+	result += move_up(offset, row, col, data)
 	return result
 end
 
 # ひとつ右を調べる
-def r(offset, row, col, data)
+def move_right(offset, row, col, data)
 	if offset % row == row - 1 then
 		return 0 # 右端
 	end
@@ -67,7 +67,7 @@ def r(offset, row, col, data)
 end
 	
 # ひとつ下を調べる
-def d(offset, row, col, data)
+def move_down(offset, row, col, data)
 	if offset + col > row * col then
 		return 0 # 最下行
 	end
@@ -82,7 +82,7 @@ def d(offset, row, col, data)
 end
 	
 # ひとつ左を調べる
-def l(offset, row, col, data)
+def move_left(offset, row, col, data)
 	if offset % row == 0 then
 		return 0 # 左端
 	end
@@ -97,7 +97,7 @@ def l(offset, row, col, data)
 end
 	
 # ひとつ上を調べる
-def u(offset, row, col, data)
+def move_up(offset, row, col, data)
 	if offset < col then
 		return 0 # 一行め
 	end
@@ -111,7 +111,7 @@ def u(offset, row, col, data)
 	return 0
 end
 
-# 見つかった１の場所をスタックに積む。二重登録はしない。
+# 見つかった１の場所(offset)をスタックに積む。二重登録しないようにする
 def add_stack(offset)
 	if $stack.index(offset) == nil then
 		$stack.push(offset)
@@ -139,7 +139,7 @@ def main()
 				# 行数分だけデータを読み込む
 				if (row_count >= row) then
 					# 問題読み込み完了、解析
-					puts kaiseki(row, col, data)
+					puts analysis_data(row, col, data)
 					row = col = row_count = 0 # カウンタリセット
 					data.clear
 				end
